@@ -1,0 +1,199 @@
+---
+title: "Juvenile Snowshoe Hares in Bonanza Creek: Exploratory Report"
+author: "Katie Munster"
+date: "11/7/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(here)
+library(janitor)
+library(lubridate)
+library(kableExtra)
+library(ggbeeswarm)
+library(effsize)
+library(broom)
+```
+
+### 1. Introduction
+
+This report provides an exploratory overview of... ### UPDATE THIS LAST
+
+### 2. Data and Analyses
+
+UPDATE THIS
+
+### 3. Preliminary Results
+
+#### A. Annual juvenile hare trap counts
+
+```{r}
+# Read in data:
+bonanza_hares <- read_csv(here("data", "bonanza_hares.csv"))
+```
+
+```{r}
+bonanza_hares_clean <- bonanza_hares %>% 
+  mutate(date = mdy(date)) %>% # convert the date to class "Date"
+  mutate(year = year(date)) %>% # create a column that only contains the year
+  mutate(site = case_when( # Add a new column site for the full names of the sites. Used unique(bonanza_hares_clean$grid) to determine the possible site values
+    grid == "bonrip" ~ "Bonanza Riparian",
+    grid == "bonbs" ~ "Bonanza Black Spruce",
+    grid == "bonmat" ~ "Bonanza Mature")) %>% 
+  group_by(year) %>% 
+  filter(age == "j")
+```
+
+```{r}
+bonanza_hares_counts <- bonanza_hares_clean %>% 
+  group_by(year) %>% 
+  summarize(hare_trap_count = n())
+```
+
+```{r}
+ggplot(data = bonanza_hares_counts, aes(x = year, y=hare_trap_count)) +
+  geom_col(aes(fill = hare_trap_count)) + 
+  theme_light() +
+  labs(x = "Year",
+       y = "Juvenile hare trappings",
+       title = "Annual Juvenile Hare Trap Counts",
+       caption = "These are the counts of juvenile hare trappings for each year at Bonanza Creek.")
+```
+
+```{r}
+bonanza_hares_stats <- bonanza_hares_counts %>% 
+  summarize(min_count = min(hare_trap_count),
+            max_count = max(hare_trap_count),
+            mean_count = round(mean(hare_trap_count), 0),
+            median_count = median(hare_trap_count))
+
+bonanza_hares_stats %>% 
+  kable(col.names = c("Minimum Annual Number of Juvenile Hares Trapped",
+                      "Maximum Annual Number of Juvenile Hares Trapped",
+                      "Mean Annual Number of Juvenile Hares Trapped",
+                      "Median Annual Number of Juvenile Hares Trapped"),
+        caption = "Summary statistics for Annual Juvenile Hare Trappings") %>% 
+  kable_styling()
+```
+
+#### B. Visualize juvenile hare weights
+
+```{r}
+ggplot(data = bonanza_hares_clean, aes(x = sex, y = weight)) +
+  geom_jitter(aes(color = sex)) +
+  facet_wrap(~ site) +
+  theme_bw() +
+  labs(x = "Sex",
+       y = "Juvenile Hare Weight (g)",
+       title = "Juvenile Hare Weights by Site",
+       caption = "Juvenile hare weights by sex and site")
+```
+
+```{r}
+ggplot(data = bonanza_hares_clean, aes(x = sex, y = weight)) +
+  geom_beeswarm(aes(color = sex)) +
+  scale_color_manual(values = c("goldenrod2","cyan4","coral")) +
+  geom_boxplot(fill = NA, width = 0.2, outlier.color = NA) +
+  stat_summary(fun=mean, 
+               geom="point", 
+               shape=20, 
+               size=4, 
+               color="black", 
+               fill="black") +
+  theme_minimal() +
+  labs(x = "Sex",
+       y = "Juvenile Hare Weight (g)",
+       title = "Juvenile Hare Weights by Site",
+       caption = "Juvenile hare weights by sex and site")
+```
+
+#### C. Juvenile weight comparison (male and female snowshoe hares)
+
+```{r}
+bonanza_hares_weight_comparison <- bonanza_hares_clean %>%
+  group_by(sex) %>% 
+  summarize(min_weight_g = min(weight, na.rm = TRUE),
+            max_weight_g = max(weight, na.rm = TRUE),
+            mean_weight_g = mean(weight, na.rm = TRUE),
+            median_weight_g = median(weight, na.rm = TRUE),
+            sd_weight_g = sd(weight, na.rm = TRUE),
+            sample_size = n())
+
+bonanza_hares_weight_comparison %>% 
+  kable(col.names = c("Sex",
+                      "Minimum Juvenile Hare Weight (g)",
+                      "Maximum Juvenile Hare Weight (g)",
+                      "Mean Juvenile Hare Weight (g)",
+                      "Median Juvenile Hare Weight (g)",
+                      "Standard Deviation Juvenile Hare Weight (g)",
+                      "Sample Size"),
+        caption = "Summary statistics for juvenile hare weights") %>% 
+  kable_styling()
+```
+
+```{r}
+# {r, include = FALSE}
+ggplot(data = bonanza_hares_clean, aes(x = weight)) +
+  geom_histogram(bins = 12) +
+  facet_wrap(~ sex)
+```
+
+```{r}
+# {r, include = FALSE}
+ggplot(data = bonanza_hares_clean, aes(sample = weight)) +
+  geom_qq() +
+  facet_wrap(~ sex) +
+  geom_qq_line()
+```
+
+```{r}
+hare_weight_male <- bonanza_hares_clean %>% 
+  filter(sex == "m") %>% 
+  drop_na(weight) %>% 
+  pull(weight)
+
+hare_weight_female <- bonanza_hares_clean %>% 
+  filter(sex == "f") %>% 
+  drop_na(weight) %>% 
+  pull(weight)
+
+ttest_hare_weights <- t.test(hare_weight_male, hare_weight_female)
+
+ttest_hare_weights
+# This p-value means there is a .7% chance that there are two samples with means at least this different if they come from populations of the same mean.
+
+hare_weight_cohen <- cohen.d(hare_weight_male, hare_weight_female)
+# Small effect size
+
+hare_weight_cohen
+```
+
+#### D. Relationship between juvenile weight and hind foot length
+
+```{r}
+ggplot(data = bonanza_hares_clean, aes(x = hindft, y = weight)) +
+  geom_point() +
+  theme_bw() +
+  geom_smooth(method = "lm") +
+  labs(x = "Hind foot length (mm)",
+       y = "Juvenile Hare Weight (g)",
+       title = "Relationship Between Juvenile Hare Weight and Hind Foot Length",
+       caption = expression(
+         paste(
+           bold("Figure 3:"), "Juvenile hare weight and hind foot length"))) +
+  theme(plot.caption = element_text(hjust = .5),
+        plot.background = element_rect(fill = "lavender"),
+        panel.background = element_rect(fill = "gray94"),
+        panel.grid.major = element_line(color = "snow3"))
+```
+
+```{r}
+hare_weight_foot_length_lm <- lm(hindft ~ weight, data = bonanza_hares_clean)
+
+hare_weight_foot_length_lm_tidy <- tidy(hare_weight_foot_length_lm)
+
+hare_weight_foot_length_lm_tidy
+```
+
