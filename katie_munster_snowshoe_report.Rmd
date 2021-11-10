@@ -25,7 +25,7 @@ This report provides an exploratory overview of juvenile snowshoe hare trappings
 
 The data contains observations for 378 juvenile snowshoe hare trappings across the Bonanza Black Spruce, Bonanza Mature, and Bonanza Riparian sites in Alaska, collected from 1999 to 2012. The data includes the date of trapping, site location, hare sex, hare age, hare weight (g), and hare hind foot length (mm). This report analyzes data on the juvenile hare trappings using exploratory data visualization, summary statistics, two-sample t-test, Cohen's d effect size, and linear regression tools.
 
-Data Citation: Kielland, K., F.S. Chapin, R.W. Ruess, and Bonanza Creek LTER. 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present ver 22. Environmental Data Initiative. https://doi.org/10.6073/pasta/03dce4856d79b91557d8e6ce2cbcdc14
+**Data Citation:** Kielland, K., F.S. Chapin, R.W. Ruess, and Bonanza Creek LTER. 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present ver 22. Environmental Data Initiative. https://doi.org/10.6073/pasta/03dce4856d79b91557d8e6ce2cbcdc14
 
 ### 3. Results
 
@@ -65,15 +65,14 @@ ggplot(data = bonanza_hares_counts, aes(x = year, y=hare_trap_count)) +
   theme_light() +
   labs(x = "Year",
        y = "Juvenile hare trappings",
-       title = "Annual Juvenile Hare Trap Counts",
-       caption = expression(
-         paste(
-           bold("Figure 1: "), "The counts of annual juvenile hare trappings at Bonanza Creek from 1999 to 2012."))) +
+       title = "Annual Juvenile Hare Trap Counts",) +
   theme(plot.caption = element_text(hjust = .5),
         plot.background = element_rect(fill = "azure"),
         panel.background = element_rect(fill = "ivory"),
         panel.grid.major = element_line(color = "gray58"))
 ```
+
+**Figure 1.** The counts of annual juvenile hare trappings at Bonanza Creek from 1999 to 2012.
 
 ```{r, include = FALSE}
 # Summary statistics for Bonanza hare counts
@@ -104,15 +103,14 @@ ggplot(data = bonanza_hares_clean, aes(x = sex, y = weight)) +
   theme_light() +
   labs(x = "Sex",
        y = "Juvenile Hare Weight (g)",
-       title = "Juvenile Hare Weights by Site",
-       caption = expression(
-         paste(
-           bold("Figure 2: "), "The juvenile hare weights by sex at the Bonanza Black Spruce, Bonanza Mature, and Bonanza Riparian sites."))) +
+       title = "Juvenile Hare Weights by Site") +
   theme(plot.caption = element_text(hjust = 0.5),
         plot.background = element_rect(fill = "azure"),
         panel.background = element_rect(fill = "ivory"),
         panel.grid.major = element_line(color = "gray58"))
 ```
+
+**Figure 2.** The distributions of juvenile hare weights by sex at the Bonanza Black Spruce, Bonanza Mature, and Bonanza Riparian sites. 
 
 ```{r}
 # Create a beeswarm plot to represent sex and weight of hares at each site
@@ -130,19 +128,20 @@ ggplot(data = bonanza_hares_clean, aes(x = sex, y = weight)) +
   theme_minimal() +
   labs(x = "Sex",
        y = "Juvenile Hare Weight (g)",
-       title = "Juvenile Hare Weights by Site",
-       caption = expression(
-         paste(
-           bold("Figure 3: "), "The juvenile hare weights by sex at the Bonanza Black Spruce, Bonanza Mature, and Bonanza Riparian sites."))) +
+       title = "Juvenile Hare Weights by Site") +
   theme(plot.caption = element_text(hjust = 0.5),
         plot.background = element_rect(fill = "azure"),
         panel.background = element_rect(fill = "ivory"),
         panel.grid.major = element_line(color = "gray58"))
 ```
 
+**Figure 3.** The distributions of juvenile hare weights by sex at the Bonanza Black Spruce, Bonanza Mature, and Bonanza Riparian sites, with no notable outliers. Red (female), blue (male), and gray (unknown sex) points indicate individual observations for weight (g) of a juvenile snowshoe hare. Box endpoints indicate the 25th and 75th percentile values; the black line and black point within the box indicate the median and mean value for each species, respectively.
+
 The male juvenile hares tend to weigh slightly more than the female juvenile hares on average. There were more juvenile hares trapped at the Bonanza Riparian site than the other two sites.
 
 #### C. Juvenile weight comparison (male and female snowshoe hares)
+
+**Table 1.** Descriptive statistics (minimum, maximum, mean, median, standard deviation, and sample size) for female and male juvenile hare weight (g).
 
 ```{r}
 # Create a table containing the mean, standard deviation, and sample size for male and female hares
@@ -162,8 +161,7 @@ bonanza_hares_weight_comparison %>%
                       "Mean Juvenile Hare Weight (g)",
                       "Median Juvenile Hare Weight (g)",
                       "Standard Deviation Juvenile Hare Weight (g)",
-                      "Sample Size"),
-        caption = "Figure 4: Summary statistics for juvenile hare weights") %>% 
+                      "Sample Size")) %>% 
   kable_styling()
 ```
 
@@ -219,10 +217,7 @@ ggplot(data = bonanza_hares_clean, aes(x = hindft, y = weight)) +
   geom_smooth(method = "lm") +
   labs(x = "Hind foot length (mm)",
        y = "Juvenile Hare Weight (g)",
-       title = "Juvenile Hare Hind Foot Length Versus Weight",
-       caption = expression(
-         paste(
-           bold("Figure 5: "), "The relationship between juvenile hare hind foot length (mm) and weight (g)."))) +
+       title = "Juvenile Hare Hind Foot Length Versus Weight") +
   theme(plot.caption = element_text(hjust = 0.5),
         plot.background = element_rect(fill = "azure"),
         panel.background = element_rect(fill = "ivory"),
@@ -249,6 +244,8 @@ pearson_r <- cor.test(bonanza_hares_clean$hindft, bonanza_hares_clean$weight) # 
 
 pearson_r
 ```
+
+**Figure 4.** The relationship between hind foot length (mm) and weight (g) for juvenile snowshoe hares. Linear model summary: $\beta$~1~ = `r round(hare_weight_foot_length_lm_tidy$estimate[2], 2)` g mm^-1^, p < 0.001, R^2^ = `r round(hare_weight_foot_length_lm_glance$r.squared,2)`, Pearson's *r* = `r round(pearson_r$estimate,2)`).
 
 There is a positive correlation between juvenile hare hind foot length and weight. If everything else is held constant, we expect that for each 1g increase in juvenile hare weight, hind foot length is expected to increase by `r round(hare_weight_foot_length_lm$coefficients[2],2)` mm, on average. The R-squared value (`r round(hare_weight_foot_length_lm_glance[1], 3)`) means `r round(hare_weight_foot_length_lm_glance[1],2)*100`% of variants in juvenile hare hind foot length is explained by this model (weight). The Pearson's r correlation value (`r round(pearson_r$estimate, 2)`) represents the moderate correlation between juvenile hare hind foot length and weight. Homoscedasticity may be a concern because there are unequal residual variances.
 
